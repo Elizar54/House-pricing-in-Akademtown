@@ -39,7 +39,7 @@ def addres_corr(address):
         return match.fact.parts[0].name
 
 
-extractor = AddressExtractor()
+
 
 URL = 'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&region=4897&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room7=1&room9=1'
 link_list = []
