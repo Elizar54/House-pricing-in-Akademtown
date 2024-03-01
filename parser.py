@@ -39,8 +39,6 @@ def addres_corr(address):
         return match.fact.parts[0].name
 
 
-
-
 URL = 'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&region=4897&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room7=1&room9=1'
 link_list = []
 p = 0
@@ -48,6 +46,7 @@ p = 0
 options = webdriver.ChromeOptions()
 options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36')
 options.add_argument('--disable-blink-features=AutomationControlled')
+options.add_argument('--headless')
 
 driver = webdriver.Chrome(options=options)
 driver.get(URL)
