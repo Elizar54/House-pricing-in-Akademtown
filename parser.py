@@ -3,9 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 import psycopg2
-from natasha import AddressExtractor
+from natasha import AddrExtractor
 import pymorphy2
-from natasha import AddressExtractor
+
 
 def price_corr(price):
     price_str = ''
@@ -23,7 +23,7 @@ def square_corr(total_sq):
         return total_sq
 
 def addres_corr(address):
-    extractor = AddressExtractor()
+    extractor = AddrExtractor()
 
     matches = extractor(address)
 
@@ -53,7 +53,7 @@ driver = webdriver.Chrome(options=options)
 driver.get(URL)
 time.sleep(0.05)
 
-while len(link_list) < 50:
+while len(link_list) < 10000:
     time.sleep(0.05)
     html = driver.find_element(By.TAG_NAME, "html")
     time.sleep(0.05)
