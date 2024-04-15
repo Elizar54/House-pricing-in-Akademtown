@@ -31,25 +31,26 @@ print('старт')
 conn = psycopg2.connect(host='ep-black-pond-a2ydwdvs.eu-central-1.aws.neon.tech', database='Akademdb', user='Elizar54', password='XUpC1QOnGvA4')
 cur = conn.cursor()
 
-URL = 'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&region=4897&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room7=1&room9=1'
+URL = 'https://novosibirsk.cian.ru/kupit-kvartiru-vtorichka/'
 link_list = []
-p = 516
+p = 1
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
 wait = WebDriverWait(driver, 10)
 
-while len(link_list) < 5000:
+while len(set(link_list)) < 1360:
     if p % 10 == 0:
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
+
     driver.get(URL)
     html = driver.page_source
     all_links = re.findall('https://novosibirsk.cian.ru/sale/flat/[0-9]{9}/', html)
     link_list += list(set(all_links))
     p += 1
-    URL = f'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&offer_type=flat&p={p+1}&region=4897&room1=1&room2=1&room3=1&room4=1&room5=1&room6=1&room7=1&room9=1'
+    URL = f'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p={p+1}&region=4897'
 
-
+    print(len(set(link_list)))
 print('ссылки выгружены', p)
-id = 14449
+id = 0
 
 columns = set(('id', 'Общая площадь', 'Этаж', 'Год сдачи', 'Дом', 'Отделка', 'price', 'metro', \
                 'address', 'Жилая площадь', 'Площадь кухни', 'Высота потолков', 'Балкон/лоджия', \
@@ -60,7 +61,7 @@ for link in link_list:
     if id % 100 == 0:
         conn = psycopg2.connect(host='ep-black-pond-a2ydwdvs.eu-central-1.aws.neon.tech', database='Akademdb', user='Elizar54', password='XUpC1QOnGvA4')
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
-
+    
     try:    
         driver.get(link)
         flat = {}
@@ -72,27 +73,25 @@ for link in link_list:
         for elem in address:
             address_str += elem.text + ' '
 
-        if not('Кировский' in address_str or 'Ленинский' in address_str):
-            elements = driver.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--Jp5Qv')
-            
-            if elements == []:
-                descript = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--group--K5ZqN')
-                elements = descript.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--qJhdR')
-            
-            price = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--amount--ON6i1')
+        
+        elements = driver.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--Jp5Qv')
+        
+        if elements == []:
+            descript = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--group--K5ZqN')
+            elements = descript.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--qJhdR')
+        
+        price = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--amount--ON6i1')
 
-            home_elems = driver.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--qJhdR')
-            
-            if home_elems != []:
-                for elem in home_elems:
-                    elem_lst = elem.text.split('\n')
-                    flat[elem_lst[0]] = elem_lst[1]
+        home_elems = driver.find_elements(By.CLASS_NAME, 'a10a3f92e9--item--qJhdR')
+        
+        if home_elems != []:
+            for elem in home_elems:
+                elem_lst = elem.text.split('\n')
+                flat[elem_lst[0]] = elem_lst[1]
 
-            try:
-                metro = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--undergrounds--sGE99')
-            except:
-                pass
-
+        try:
+            metro = driver.find_element(By.CLASS_NAME, 'a10a3f92e9--undergrounds--sGE99')
+        finally:
             for elem in elements:
                 elem_lst = elem.text.split('\n')
                 flat[elem_lst[0]] = elem_lst[1]
@@ -100,8 +99,6 @@ for link in link_list:
             flat['price'] = price.text
             flat['metro'] = metro.text
             flat['address'] = address_str
-
-            
             
             if 'Тип жилья' in set(flat.keys()): 
                 flat['Дом'] = flat['Тип жилья'] 
