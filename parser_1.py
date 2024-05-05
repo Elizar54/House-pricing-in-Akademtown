@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import psycopg2
@@ -31,26 +30,45 @@ print('старт')
 conn = psycopg2.connect(host='ep-black-pond-a2ydwdvs.eu-central-1.aws.neon.tech', database='Akademdb', user='Elizar54', password='XUpC1QOnGvA4')
 cur = conn.cursor()
 
-URL = 'https://novosibirsk.cian.ru/kupit-kvartiru-vtorichka/'
 link_list = []
 p = 1
 driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
-wait = WebDriverWait(driver, 10)
+prev_len = float('inf')
 
-while len(set(link_list)) < 1360:
-    if p % 10 == 0:
-        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
+link_districts = ['https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=216&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=218&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=212&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=214&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=211&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=210&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=209&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=213&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=209&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=215&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
+                  'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=217&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1']
 
-    driver.get(URL)
-    html = driver.page_source
-    all_links = re.findall('https://novosibirsk.cian.ru/sale/flat/[0-9]{9}/', html)
-    link_list += list(set(all_links))
-    p += 1
-    URL = f'https://novosibirsk.cian.ru/cat.php?deal_type=sale&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p={p+1}&region=4897'
+for link in link_districts:
+    URL = link
+    p = 1
+    while not (p != 1 and 'p=1' in URL):
+        prev_len = len(link_list)
 
-    print(len(set(link_list)))
-print('ссылки выгружены', p)
-id = 0
+        if p % 10 == 0:
+            driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
+        driver.get(URL)
+
+        html = driver.page_source
+        all_links = re.findall('https://novosibirsk.cian.ru/sale/flat/[0-9]{9}/', html)
+        link_list += list(set(all_links))
+        p += 1
+        URL = link[:-1] + str(p)
+        print(len(set(link_list)))
+    else:
+        continue
+
+print('Все выгружено.')
+
+id = 7401
 
 columns = set(('id', 'Общая площадь', 'Этаж', 'Год сдачи', 'Дом', 'Отделка', 'price', 'metro', \
                 'address', 'Жилая площадь', 'Площадь кухни', 'Высота потолков', 'Балкон/лоджия', \

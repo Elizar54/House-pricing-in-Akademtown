@@ -27,18 +27,28 @@ def floor_corr(floor):
 
 
 def toilet_single(toilet):
-    if 'раздельный' in toilet:
-        return int(toilet.split()[0])
-    return 0
+    if 'раздельны' in str(toilet):
+        toilet_lst = toilet.split()
+        
+        for elem in toilet_lst:
+            if 'раздельны' in elem:
+                return int(previous)
+            previous = elem
+    return 'None'
 
 def toilet_not_sngl(toilet):
-    if 'совмещенный' in toilet:
-        return int(toilet.split()[0])
-    return 0
+    if 'совмещенны' in str(toilet):
+        toilet_lst = toilet.split()
+        
+        for elem in toilet_lst:
+            if 'совмещенны' in elem:
+                return int(previous)
+            previous = elem
+    return 'None'
 
 
 def big_elevators(elevators):
-    if 'грузов' in elevators:
+    if 'грузов' in str(elevators):
         elevators_lst = elevators.split()
         
         for elem in elevators_lst:
@@ -49,7 +59,7 @@ def big_elevators(elevators):
 
 
 def lit_elevators(elevators):
-    if 'пассажир' in elevators:
+    if 'пассажир' in str(elevators):
         elevators_lst = elevators.split()
 
         for elem in elevators_lst:
@@ -59,3 +69,22 @@ def lit_elevators(elevators):
     return 0
 
 
+def metro_distance(metro_str):
+    lst = metro_str.split()
+    mins = []
+    for elem in lst:
+        if elem.isdigit():
+            mins.append(int(elem))
+    if mins != []:
+        return min(mins)
+    return 'None'
+
+def balcony(balcony):
+    if 'балкон' in str(balcony):
+        return int(balcony.split()[0])
+    return 0
+
+def lodgia(balcony):
+    if 'лоджия' in str(balcony):
+        return int(balcony.split()[0])
+    return 0
