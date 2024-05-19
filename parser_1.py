@@ -47,7 +47,10 @@ link_districts = ['https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5
                   'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=215&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1',
                   'https://novosibirsk.cian.ru/cat.php?deal_type=sale&district%5B0%5D=217&engine_version=2&object_type%5B0%5D=1&offer_type=flat&p=1']
 
-for link in link_districts:
+link_prices = ['https://novosibirsk.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&maxprice=3000000&minprice=2000000&offer_type=flat&p=1&region=4897',
+               'https://novosibirsk.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&minprice=6000000&offer_type=flat&p=1&region=4897']
+
+for link in link_prices:
     URL = link
     p = 1
     while not (p != 1 and 'p=1' in URL):
@@ -61,31 +64,33 @@ for link in link_districts:
         all_links = re.findall('https://novosibirsk.cian.ru/sale/flat/[0-9]{9}/', html)
         link_list += list(set(all_links))
         p += 1
-        URL = link[:-1] + str(p)
+        if 'https://novosibirsk.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&maxprice=3000000&minprice=2000000' in link:
+            URL = f'https://novosibirsk.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&maxprice=3000000&minprice=2000000&offer_type=flat&p={p}&region=4897'
+        else:
+            URL = f'https://novosibirsk.cian.ru/cat.php?currency=2&deal_type=sale&engine_version=2&minprice=6000000&offer_type=flat&p={p}&region=4897'
         print(len(set(link_list)))
-    else:
-        continue
+
 
 print('Все выгружено.')
 
-id = 7401
 
-columns = set(('id', 'Общая площадь', 'Этаж', 'Год сдачи', 'Дом', 'Отделка', 'price', 'metro', \
+columns = set(('Общая площадь', 'Этаж', 'Год сдачи', 'Дом', 'Отделка', 'price', 'metro', \
                 'address', 'Жилая площадь', 'Площадь кухни', 'Высота потолков', 'Балкон/лоджия', \
                     'Вид из окон', 'Санузел', 'Тип дома', 'Мусоропровод', 'Отопление', 'Подъезды', \
                           'Аварийность', 'Тип перекрытий', 'Количество лифтов', 'Строительная серия'))
 
+с = 0
+
 for link in link_list:
-    if id % 100 == 0:
+    if с % 100 == 0:
         conn = psycopg2.connect(host='ep-black-pond-a2ydwdvs.eu-central-1.aws.neon.tech', database='Akademdb', user='Elizar54', password='XUpC1QOnGvA4')
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=set_chrome_options())
-    
+    с += 1
+
     try:    
         driver.get(link)
         flat = {}
         address_str = ''
-
-        flat['id'] = id
 
         address = driver.find_elements(By.CLASS_NAME, 'a10a3f92e9--address--SMU25')
         for elem in address:
@@ -130,16 +135,16 @@ for link in link_list:
 
             if 'Год постройки' in set(flat.keys()): del flat['Год постройки']
 
-            id += 1
             
             with conn.cursor() as curs:
-                tuple_insert = (flat['id'], flat['Общая площадь'], flat['Этаж'], flat['Год сдачи'], flat['Дом'], flat['Отделка'],\
+                tuple_insert = (flat['Общая площадь'], flat['Этаж'], flat['Год сдачи'], flat['Дом'], flat['Отделка'],\
                                             flat['price'], flat['metro'], flat['address'], flat['Жилая площадь'], flat['Площадь кухни'], \
                                             flat['Высота потолков'], flat['Санузел'], flat['Балкон/лоджия'], flat['Вид из окон'], flat['Тип перекрытий'], \
                                             flat['Мусоропровод'], flat['Тип дома'], flat['Отопление'], flat['Подъезды'], flat['Аварийность'], flat['Количество лифтов'])
-                curs.execute("INSERT INTO flats_new (id, total_square, floor, year, rented, decor, price, metro, address, living_sq, kitchen_sq, ceil_height, \
+                curs.execute("INSERT INTO flats_new (total_square, floor, year, rented, decor, price, metro, address, living_sq, kitchen_sq, ceil_height, \
                                         toilets, balcony, window_view, barriers, trash, home_type, warm, entrance, warning, elevators) VALUES (%s, %s, %s, \
                                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", tuple_insert)
                 conn.commit()
+
     except:
         pass
